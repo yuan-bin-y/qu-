@@ -1,0 +1,212 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BOSS 页面测试样例</title>
+<style>body{font:15px/1.8 sans-serif;margin:40px;color:#234337}button,a,textarea{display:inline-block;margin:10px;padding:10px}textarea{width:500px;height:100px}.job-card-wrapper,.job-banner,.chat-container{padding:25px;background:#f5f7ef;max-width:850px}.message-item.is-self{padding:16px;background:#e0efb7;margin:10px}</style>
+<style>.fixture-layout{display:grid;grid-template-columns:330px 1fr;gap:24px;align-items:start}.job-detail-box{position:sticky;top:24px;padding:24px;background:#fff;border:1px solid #e3e7ef;border-radius:12px}.job-card-wrapper{margin-bottom:20px;min-height:240px;border:1px solid #e3e7ef;border-radius:12px}.job-card-wrapper.active{border-color:#00b9c0}.job-name{font-size:18px}.boss-dialog{position:fixed;top:30%;left:35%;padding:24px;background:#fff;border:1px solid #ddd;z-index:999}.job-detail-header a{background:#00b9c0;color:white;border-radius:6px;text-decoration:none}</style>
+<body><main id="fixture"></main><script>
+// Test-only DOM fixture. The CDP test intercepts all BOSS requests: no real account or recruiter.
+const container=document.getElementById('fixture');
+const salaryFonts = /* salary-font-fixture */ null;
+if (salaryFonts && sessionStorage.getItem('fixture-mode')?.startsWith('salary-')) {
+  const style=document.createElement('style');
+  style.textContent=Object.entries(salaryFonts).map(([key,value])=>'@font-face{font-family:salary-qa-'+key+';src:url(data:font/woff;base64,'+value+')}').join('');
+  document.head.append(style);
+}
+function salaryFixture(root,job) {
+  const mode=sessionStorage.getItem('fixture-mode');if(!mode?.startsWith('salary-'))return;
+  const salary=root.querySelector('.salary');
+  salary.textContent=mode==='salary-monthly'?'–K·薪':'–元/天';
+  if(mode==='salary-card-conflict'&&root.matches('.job-detail-box'))salary.textContent='–元/天';
+  salary.style.fontFamily=mode==='salary-font'||mode==='salary-monthly'?'salary-qa-a, sans-serif':'salary-missing-font, sans-serif';
+  if(mode==='salary-native-data'||mode==='salary-wrong-data'||(mode.startsWith('salary-card-')&&root.matches('.job-card-wrapper'))) root.querySelector('.job-name').__vueParentComponent={props:{jobInfo:{encryptJobId:mode==='salary-wrong-data'?'other-job':job.id,jobId:'plain-alias',salaryDesc:'200–250元/天',secret:'never-export'}}};
+}
+{
+  window.__fixtureDocumentToken=crypto.randomUUID();
+  const identityMode=sessionStorage.getItem('fixture-mode')?.startsWith('title-suffix-');
+  const modern=sessionStorage.getItem('fixture-mode')?.startsWith('modern-');
+  const allJobs=Array.from({length:8},(_,index)=>({id:index?'fixture-'+index:'fixture-123',title:modern&&index<2?(sessionStorage.getItem('fixture-mode')==='modern-benefits'?'java实习生（外企+金融保险+双休）':'java实习生'):index?'Java 实习生 '+index:'Java 开发工程师',company:'测试技术公司'}));
+  if(sessionStorage.getItem('fixture-mode')==='title-groups')allJobs[0].title=sessionStorage.getItem('fixture-title')||'Java实习';
+  if(sessionStorage.getItem('fixture-mode')==='blocked-groups')allJobs[0].title='Java 实习生';
+  if(identityMode)for(const [index,job]of allJobs.entries()){job.title=index?'java实习-五险一金':sessionStorage.getItem('fixture-mode')==='title-suffix-home'?'java实习-居家办公':sessionStorage.getItem('fixture-mode')==='title-suffix-brackets'?'java实习（双休）':'java实习-双休';job.company='绍兴扬瑾网络科技';}
+  let batch=sessionStorage.getItem('fixture-batch')==='yes';
+  container.innerHTML='<h1>职位列表（测试样例）</h1><div class="fixture-layout"><div class="job-list-container"></div><section class="job-detail-box"></section></div>';
+  const list=document.querySelector('.job-list-container');let rendered=0;
+  function renderDetail(job) {
+    const nativeMode=sessionStorage.getItem('fixture-mode')?.startsWith('modern-native-');
+    if(sessionStorage.getItem('fixture-mode')==='modern-native-stale') job=allJobs[1];
+    const wrong=sessionStorage.getItem('fixture-mode')==='stale-detail';
+    const box=document.querySelector('.job-detail-box');box.dataset.jobId=wrong?'wrong-job':job.id;
+    box.innerHTML='<section class="job-detail-header"><h1 class="job-name">'+(wrong?'旧岗位详情':job.title)+'</h1><span class="salary">300-400元/天</span><div class="text"><span>上海</span><span>1-3年</span><span>本科</span></div><a target="_blank" class="op-btn-chat" href="/web/geek/chat?bossId=fixture-boss&jobId='+job.id+'">立即沟通</a></section><p class="company-name">'+job.company+'</p><div class="job-boss-info"><span class="name">测试招聘者</span></div><section class="job-detail-section"><div class="job-sec-text">负责 Java 后端服务开发，使用 Spring Boot 和 MySQL，参与业务接口设计和系统维护。当前岗位编号：'+job.id+'</div></section>';
+    if(sessionStorage.getItem('fixture-mode')==='blocked-groups')box.querySelector('.job-sec-text').textContent=sessionStorage.getItem('fixture-description');
+    if(modern) {
+      delete box.dataset.jobId;
+      const header=box.querySelector('.job-detail-header');header.className='job-header';
+      header.querySelector('.job-name').textContent=(sessionStorage.getItem('fixture-mode')==='modern-benefits'?'java实习生':job.title).replace('java','Java ');
+      header.querySelector('.salary').textContent='180–210元/天';
+      header.querySelector('.text span').textContent='北京';
+      box.querySelector('.company-name').remove();
+      const jd=box.querySelector('.job-detail-section');jd.className='job-detail-wrap';
+      jd.querySelector('.job-sec-text').textContent='不提供住宿，至少保证实习6个月左右。熟悉Java语言，具备扎实的Java基础；熟练使用Springboot、Springcloud等框架；熟悉MySQL、PostgresSQL等关系型数据库，了解Redis缓存技术。';
+      box.querySelector('.job-boss-info').insertAdjacentHTML('beforeend','<span class="boss-active-time">今日活跃</span>');
+      box.insertAdjacentHTML('beforeend','<aside class="related-jobs" data-job-id="recommendation-job">推荐职位，不是当前岗位</aside>');
+      header.querySelector('.op-btn-chat').setAttribute('href','javascript:void(0)');
+      if(sessionStorage.getItem('fixture-mode')!=='modern-no-metadata') {
+        header.__vueParentComponent={props:{jobInfo:{encryptJobId:sessionStorage.getItem('fixture-mode')==='modern-wrong-id'?'wrong-job':job.id,jobId:'100123456'}},ctx:{selectedJob:{encryptJobId:'another-job'}}};
+        box.__vueParentComponent={props:{jobInfo:{encryptJobId:'recommendation-job'}}};
+      }
+    }
+    salaryFixture(box,job);
+    const button=box.querySelector('.op-btn-chat');
+    const mode=sessionStorage.getItem('fixture-mode');
+    if(mode?.startsWith('custom-')&&mode!=='custom-default-active')button.setAttribute('href','javascript:void(0)');
+    if(identityMode) {
+      const header=box.querySelector('.job-detail-header');header.querySelector('.job-name').textContent='java实习';
+      header.querySelector('.salary').textContent=mode==='title-suffix-wrong-salary'?'180-250元/天':'150–200元/天';
+      header.querySelector('.text').innerHTML='<span>'+(mode==='title-suffix-wrong-city'?'杭州':'绍兴')+'</span><span>4天/周 12个月</span><span>本科</span>';
+      box.querySelector('.job-boss-info').insertAdjacentHTML('beforeend','<div class="boss-info-attr">绍兴扬瑾网络科技 · 总经理</div>');
+      box.querySelector('.company-name').remove();
+      if(mode==='title-suffix-wrong-company')box.querySelector('.boss-info-attr').textContent='另一家公司 · 总经理';
+      if(mode==='title-suffix-insufficient'){header.querySelector('.salary').textContent='';header.querySelector('.text').innerHTML='<span>本科</span>';}
+      button.href='javascript:void(0)';
+      if(!['title-suffix-id','title-suffix-id-duplicates','title-suffix-wrong-id'].includes(mode))delete box.dataset.jobId;
+      if(mode==='title-suffix-wrong-id')box.dataset.jobId='different-job';
+      if(mode==='title-suffix-native')header.__vueParentComponent={props:{jobInfo:{encryptJobId:job.id}}};
+    }
+    if(mode?.startsWith('default-')) {
+      button.href='javascript:void(0)';
+      if(mode==='default-already-contacted')button.textContent='继续沟通';
+    }
+    if(mode==='company-fallback') {
+      box.querySelector('.company-name').remove();
+      box.querySelector('.job-boss-info').insertAdjacentHTML('beforeend','<div class="boss-info-attr">宁波测试公司 · HR</div>');
+      document.querySelectorAll('.job-card-wrapper .company-name').forEach(el=>el.remove());
+    }
+    if(mode==='custom-native'||mode==='custom-unsupported'||mode==='custom-success-native-cache') {
+      button.href='javascript:void(0)';
+      box.querySelector('.job-name').__vueParentComponent={props:{jobInfo:{encryptJobId:job.id,encryptBossId:mode!=='custom-unsupported'?'fixture-boss':undefined,securityId:'fixture-security'}}};
+    }
+    if(['custom-native-vue2','custom-native-cleared','custom-wrong-recipient','custom-wrong-native-job','custom-cleared-unverified'].includes(mode)) {
+      button.href='javascript:void(0)';
+      delete box.dataset.jobId;
+      if(!box.parentElement.matches('.job-detail-container')) {
+        const wrapper=document.createElement('div');wrapper.className='job-detail-container';box.before(wrapper);wrapper.append(box);
+      }
+      box.parentElement.__vue__={$props:{data:{jobInfo:{encryptId:job.id,jobId:'plain-alias',securityId:'fixture-security'},bossInfo:{encryptId:'fixture-boss'}}}};
+      const title=box.querySelector('.job-name');
+      let nested=title;
+      for(let depth=0;depth<6;depth++){const wrapper=document.createElement('div');nested.before(wrapper);wrapper.append(nested);nested=wrapper;}
+    }
+    if(mode==='modern-semantic'||mode==='modern-benefits') {
+      box.classList.add('job-card-wrapper');
+      const header=box.querySelector('.job-header');header.className='position-summary';
+      const title=header.querySelector('.job-name');title.outerHTML='<h2 class="position-heading">'+title.textContent+'</h2>';
+      const jd=box.querySelector('.job-sec-text');jd.className='text';jd.before(Object.assign(document.createElement('h3'),{textContent:'职位描述'}));
+      box.querySelector('.job-detail-wrap').className='position-description-section';
+      button.className='native-communicate';
+    }
+
+    if(nativeMode) {
+      const header=box.querySelector('.job-header');header.className='job-detail-header';
+      const title=header.querySelector('.job-name'),salary=header.querySelector('.salary'),tags=header.querySelector('.text');
+      const headerInfo=document.createElement('div');headerInfo.className='job-header-info';
+      const detailInfo=document.createElement('div');detailInfo.className='job-detail-info';
+      const titleSpan=document.createElement('span');titleSpan.className='job-name';titleSpan.textContent=title.textContent;
+      salary.className='job-salary';detailInfo.append(titleSpan,salary);title.remove();
+      const listTags=document.createElement('ul');listTags.className='tag-list';
+      for(const el of tags.querySelectorAll('span')) {const li=document.createElement('li');li.textContent=el.textContent;listTags.append(li);}tags.remove();
+      headerInfo.append(detailInfo,listTags);const op=document.createElement('div');op.className='job-detail-op clearfix';button.className='op-btn op-btn-chat';op.append(button);header.append(headerInfo,op);
+      delete header.__vueParentComponent;delete box.__vueParentComponent;
+      const body=document.createElement('div');body.className='job-detail-body';
+      const labelHeading=document.createElement('h3');labelHeading.className='title';labelHeading.textContent='职位描述';
+      const labels=document.createElement('ul');labels.className='job-label-list';labels.innerHTML=['Golang','Java','C++','C','SpringCloud','MySQL','Redis','Spring','Python'].map(t=>'<li>'+t+'</li>').join('');
+      const desc=document.createElement('p');desc.className='desc';desc.textContent=box.querySelector('.job-sec-text').textContent+' 岗位职责：开发 Java 后端服务，参与接口与业务开发。当前岗位编号：'+job.id;
+      if(mode==='modern-native-blocked')desc.textContent+='本岗位为外包派遣实习。';
+      const boss=box.querySelector('.job-boss-info');boss.innerHTML='<div class="detail-figure"></div><div><h2 class="name">测试招聘者 <span class="boss-active-time">刚刚活跃</span></h2><div class="boss-info-attr">测试技术公司</div></div>';body.append(labelHeading,labels);
+      if(mode!=='modern-native-labels-only')body.append(desc);
+      body.append(boss);box.querySelector('.job-detail-wrap').remove();box.append(body);
+    }
+    if(mode?.startsWith('receipt-reactive-')) {
+      delete box.dataset.jobId;
+      button.setAttribute('href','javascript:void(0)');
+      box.querySelector('.job-detail-header').__vueParentComponent={props:{jobInfo:{encryptJobId:job.id}}};
+      const jd=box.querySelector('.job-sec-text'),section=jd.parentElement;
+      const desc=document.createElement('p');desc.className='desc';
+      desc.innerHTML='<style>.qa-decoy{display:none}/* first-render */</style><span>'+jd.textContent+'</span><span class="qa-decoy">销售培训 隐藏内容不属于正文</span>';
+      section.className='job-detail-body';section.replaceChildren(Object.assign(document.createElement('h3'),{className:'title',textContent:'职位描述'}),desc);
+    }
+    button.onclick=event=>{
+      if(event.defaultPrevented)return; // Model a native handler that ignores pre-cancelled clicks.
+      window.__fixtureCommunications=(window.__fixtureCommunications||0)+1; // Extension must suppress the anchor's default navigation after this handler.
+      const mode=sessionStorage.getItem('fixture-mode');
+      if(mode?.startsWith('custom-')&&mode!=='custom-default-active') {
+        button.textContent='继续沟通';
+        if(mode==='custom-reactive-alias')button.href='/web/geek/chat?bossId=fixture-boss&jobId=plain-native-alias';
+        if(mode==='custom-no-entry')return;
+        if(mode==='custom-native-navigation'){window.open('/web/geek/chat?bossId=fixture-boss&jobId='+job.id,'_blank');return;}
+        const dialog=document.createElement('div');dialog.className='boss-dialog';dialog.setAttribute('role','dialog');
+        const genericNotice=mode.startsWith('custom-success-');
+        dialog.innerHTML=genericNotice?'<h3>已向BOSS发送消息</h3><div class="greeting-preview">'+(mode==='custom-success-truncated'?'BOSS 原生自动招呼的...':'')+'</div><p>如需修改打招呼内容，请在【消息通知-设置招呼语】页面修改</p><button class="cancel-btn">留在此页</button><button class="sure-btn">继续沟通</button>':'<p>沟通已建立，请发送第一条消息</p><button class="cancel-btn">留在此页</button><button class="sure-btn">继续沟通</button>';
+        if(['custom-success-matching','custom-success-truncated'].includes(mode))window.__fixtureDefaultTexts=(window.__fixtureDefaultTexts||0)+1;
+        dialog.querySelector('.cancel-btn').onclick=()=>{window.__fixtureStays=(window.__fixtureStays||0)+1;dialog.remove();};
+        dialog.querySelector('.sure-btn').onclick=()=>{window.__fixtureContinues=(window.__fixtureContinues||0)+1;dialog.remove();window.open('/web/geek/chat?bossId=fixture-boss&jobId='+job.id,'_blank');};
+        document.body.append(dialog);return;
+      }
+      if(mode==='replaced-detail'||mode==='wrong-detail-after-click') setTimeout(()=>{
+        const current=document.querySelector('.job-detail-box'),replacement=current.cloneNode(true);
+        current.replaceWith(replacement);renderDetail(job);
+        if(mode==='wrong-detail-after-click')replacement.dataset.jobId='wrong-job';
+      },350);
+      if(mode?.startsWith('receipt-reactive-')) setTimeout(()=>{
+        const desc=box.querySelector('.desc');desc.querySelector('style').textContent='.qa-decoy{display:none}/* reactive-render '+Date.now()+' */';
+        desc.querySelector('.qa-decoy').textContent='销售培训 隐藏内容刷新 '+Date.now();
+        button.setAttribute('href','/web/geek/chat?bossId=fixture-boss&jobId=plain-native-alias');
+        if(mode==='receipt-reactive-replaced'||mode==='receipt-reactive-wrong-id') {
+          const replacement=box.cloneNode(true);box.replaceWith(replacement);
+          if(mode==='receipt-reactive-wrong-id')replacement.dataset.jobId='different-job';
+        }
+      },350);
+      const receipt=()=>{
+      window.__fixtureDefaultTexts=(window.__fixtureDefaultTexts||0)+1;
+      const dialog=document.createElement('div');dialog.className='boss-dialog';dialog.setAttribute('role','dialog');
+      const native=mode?.startsWith('receipt-');
+      if(native) {
+        dialog.className='notice-layer';dialog.removeAttribute('role');dialog.style.cssText='position:fixed;inset:0;z-index:9999';
+        const negative=mode==='receipt-unconfirmed';
+        dialog.innerHTML='<div class="native-mask" style="position:absolute;inset:0;background:#0006"></div><div class="notice-card" style="position:relative;margin:150px auto;width:500px;background:white;padding:25px"><h3>'+(negative?'本次消息未发送':'已向BOSS发送消息')+'</h3><p>我需要寻找 Java 实习岗位。请在【消息通知-设置招呼语】页面修改。</p><div class="notice-actions"><div class="btn-stay">留在此页</div><div class="btn-next">继续沟通</div></div></div>';
+      } else dialog.innerHTML='<p>打招呼成功</p><a class="cancel-btn">留在此页</a><a class="sure-btn">继续沟通</a>';
+      document.body.append(dialog);button.textContent='继续沟通';
+      const stay=dialog.querySelector(native?'.btn-stay':'.cancel-btn'),next=dialog.querySelector(native?'.btn-next':'.sure-btn');
+      stay.onclick=()=>{
+        window.__fixtureStays=(window.__fixtureStays||0)+1;
+        window.__fixtureDismissJob=job.id;
+        window.__fixtureDismissVisibility=getComputedStyle(dialog).visibility;
+        dialog.remove();
+      };
+      next.onclick=()=>{window.__fixtureContinues=(window.__fixtureContinues||0)+1;dialog.remove();window.open('/web/geek/chat?bossId=fixture-boss&jobId='+(mode==='wrong-chat'?'wrong-job':job.id),'_blank');};
+      };
+      setTimeout(receipt,600); // Let native detail renders finish before the asynchronous receipt.
+    };
+  }
+  function appendCards(limit) {
+    while(rendered<limit) {
+      const job=allJobs[rendered++], card=document.createElement('article');card.className='job-card-wrapper';
+      card.innerHTML='<a target="_blank" href="/job_detail/'+job.id+'.html"><span class="job-name">'+job.title+'</span></a><p class="company-name">'+job.company+'</p><span class="job-area">上海·浦东</span><span class="salary">300-400元/天</span><ul class="tag-list"><li>1-3年</li><li>本科</li></ul>';
+      if(identityMode){card.querySelector('.job-area').textContent='绍兴·越城区·镜湖';card.querySelector('.salary').textContent='150-200元/天';card.querySelector('.tag-list').innerHTML='<li>4天/周</li><li>12个月</li><li>本科</li>';}
+      salaryFixture(card,job);
+      if(modern) {card.querySelector('.job-area').textContent='北京';card.querySelector('.salary').textContent='180–210元/天';}
+      if(sessionStorage.getItem('fixture-mode')?.startsWith('modern-native-')) {
+        const wrap=document.createElement('div');wrap.className='job-card-wrap';
+        if(rendered%2) {const li=document.createElement('li');li.className='job-card-box';li.append(...card.childNodes);wrap.append(li);list.append(wrap);}
+        else {wrap.append(card);list.append(wrap);}
+      } else list.append(card);
+      const actualCard=list.lastElementChild.matches('.job-card-wrap')?list.lastElementChild.firstElementChild:card;
+      actualCard.querySelector('a').onclick=event=>{if(event.defaultPrevented)return;event.preventDefault();document.querySelectorAll('.job-card-wrapper,li.job-card-box,.job-card-wrap').forEach(c=>c.classList.remove('active'));(actualCard.closest('.job-card-wrap')||actualCard).classList.add('active');setTimeout(()=>renderDetail(job),250);};
+    }
+  }
+  appendCards(batch||modern?5:['title-suffix-ambiguous','title-suffix-id-duplicates'].includes(sessionStorage.getItem('fixture-mode'))?2:1);renderDetail(allJobs[0]);list.firstElementChild.classList.add('active');
+  if(['modern-native-stale','modern-native-switch'].includes(sessionStorage.getItem('fixture-mode'))) {list.firstElementChild.classList.remove('active');list.children[1].classList.add('active');if(sessionStorage.getItem('fixture-mode')==='modern-native-switch')renderDetail(allJobs[1]);}
+  if(sessionStorage.getItem('fixture-mode')==='salary-font') {
+    for(const family of ['a','b']) {const el=document.createElement('span');el.id='font-'+family;el.textContent='–K';el.style.fontFamily='salary-qa-'+family+', sans-serif';container.append(el);}
+  }
+  window.__fixtureEnableBatch=()=>{batch=true;window.__fixtureBatchEnabled=true;appendCards(5);};
+  window.addEventListener('scroll',()=>{window.__fixtureScrollCount=(window.__fixtureScrollCount||0)+1;if(batch&&rendered<8&&innerHeight+scrollY>=document.documentElement.scrollHeight-250)appendCards(8);});
+}
+</script></body></html>

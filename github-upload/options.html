@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>qu投 · 设置</title><link rel="stylesheet" href="ui.css"></head>
+<body class="settings-page">
+  <header class="settings-top"><a class="brand" href="options.html"><span class="brand-mark">↗</span><span>qu投<small>BOSS 自动投递</small></span></a><div class="top-actions"><a href="https://www.zhipin.com/web/geek/job" target="_blank" rel="noreferrer">打开 BOSS ↗</a><button id="compact-window" class="text-button" type="button">小窗打开</button><span class="version">v0.2.07</span></div></header>
+  <nav class="settings-tabs" aria-label="设置分类"><button class="nav-item selected" data-tab="rules">筛选与投递</button><button class="nav-item" data-tab="schedules">定时投递</button><button class="nav-item" data-tab="records">投递记录</button></nav>
+  <main>
+    <header class="page-header"><h1 id="page-title">筛选与投递</h1><p class="subtitle" id="page-subtitle">先筛选，再沟通。空白条件表示不限。</p></header>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <form id="config-form">
+      <section id="rules" class="tab-panel">
+        <article class="card"><div class="card-heading"><h2>岗位条件</h2><span class="chip">全部条件同时满足</span></div>
+          <div class="fields two-col">
+          <div class="full title-rule-editor">
+            <input id="titleKeywords" type="hidden" hidden>
+            <div class="title-rule-heading"><div><span class="field-label">标题关键词组</span><p class="hint" id="title-groups-hint">每个框填写一个关键词。同一组的词必须同时出现在标题中，顺序不限；Java 不会匹配 JavaScript。可停用整组保留内容，启用后恢复匹配。</p></div><label>组间匹配方式<select id="titleMode"><option value="any">任意一组</option><option value="all">全部组</option></select></label></div>
+            <p class="title-mode-hint" id="title-mode-hint"></p>
+            <div id="title-group-list" class="title-group-list" aria-describedby="title-groups-hint"></div>
+            <div class="title-group-actions"><button type="button" id="add-title-group" class="secondary">＋ 添加一组</button><button type="button" id="clear-title-groups" class="text-button">清空 / 不限标题</button></div>
+            <div class="title-rule-preview" id="title-rule-preview" role="status" aria-live="polite"></div>
+            <div class="title-rule-test"><label for="title-test-input">试一下岗位标题</label><input id="title-test-input" placeholder="例如：实习-JAVA开发" autocomplete="off"><p id="title-test-result" role="status" aria-live="polite">输入标题，检查是否满足当前关键词组。</p></div>
+          </div>
+          <div class="full blocked-word-field">
+            <input id="blockedWords" type="hidden" hidden>
+            <span class="field-label" id="blocked-words-label">屏蔽词</span>
+            <div class="blocked-word-editor" role="group" aria-labelledby="blocked-words-label" aria-describedby="blocked-words-hint">
+              <div id="blocked-word-list" class="title-group-terms"></div>
+              <button type="button" id="add-blocked-word" class="text-button title-term-add">＋ 关键词</button>
+            </div>
+            <span class="hint" id="blocked-words-hint">每个框填写一个屏蔽词，可点 × 删除；岗位标题、公司、JD 等内容命中任意一个词即跳过。</span>
+          </div>
+          <label class="full">屏蔽公司<textarea id="blockedCompanies" rows="1" placeholder="公司名称或名称片段"></textarea></label>
+          <div class="full city-field">
+            <label for="cities">城市 / 地区</label>
+            <button type="button" id="open-city-picker" class="city-picker-trigger" aria-haspopup="dialog">选择城市 <span>热门城市 / 拼音首字母 ↗</span></button>
+            <span class="hint">城市可多选；也可自行输入其他城市或地区。</span>
+            <div class="city-selection-head"><span id="city-count" role="status" aria-live="polite"></span><button id="clear-cities" type="button" class="text-button" hidden>清空 / 不限</button></div>
+            <div id="selected-cities" class="selected-cities" role="group" aria-label="已选城市，点击移除"></div>
+            <input id="cities" placeholder="也可输入其他城市或地区，逗号分隔" aria-describedby="city-hint">
+            <span class="hint" id="city-hint">选中任一城市即可；点击城市旁的 × 移除。按岗位展示的地点筛选，保存后生效。</span>
+          </div>
+          <label>最低月薪（元）<input id="salaryMin" type="number" min="0" max="1000000" step="100"><span class="hint">0 表示不限。</span></label><label>最高月薪（元）<input id="salaryMax" type="number" min="0" max="1000000" step="100"><span class="hint">岗位薪资区间与设置区间有重叠即可。</span></label>
+          <label>日薪换算天数 / 月<input id="salaryWorkDays" type="number" min="1" max="31" step="0.25"><span class="hint" id="salary-preview"></span></label><label>HR 活跃度<select id="hrMaxDays"><option value="0">不限</option><option value="1">在线 / 今日活跃</option><option value="3">近 3 天活跃</option><option value="7">近 7 天活跃</option><option value="30">近 30 天活跃</option></select><span class="hint">开启后，未展示活跃度的岗位会跳过并记录原因。</span></label></div>
+          <fieldset><legend>接受的学历要求 <span>不勾选表示不限</span></legend><div class="choices" id="education"><label><input type="checkbox" value="学历不限">不限</label><label><input type="checkbox" value="高中">高中</label><label><input type="checkbox" value="中专/中技">中专 / 中技</label><label><input type="checkbox" value="大专">大专</label><label><input type="checkbox" value="本科">本科</label><label><input type="checkbox" value="硕士">硕士</label><label><input type="checkbox" value="博士">博士</label></div></fieldset>
+          <fieldset><legend>接受的经验要求 <span>不勾选表示不限</span></legend><div class="choices" id="experience"><label><input type="checkbox" value="经验不限">不限</label><label><input type="checkbox" value="在校/应届">在校 / 应届</label><label><input type="checkbox" value="1年以内">1 年以内</label><label><input type="checkbox" value="1-3年">1–3 年</label><label><input type="checkbox" value="3-5年">3–5 年</label><label><input type="checkbox" value="5-10年">5–10 年</label><label><input type="checkbox" value="10年以上">10 年以上</label></div></fieldset>
+        </article>
+        <article class="card"><div class="card-heading"><h2>自动打招呼</h2></div>
+          <label class="toggle-row"><span><strong>点击岗位自动打招呼</strong><small>逐岗高亮并跟随滚动，先筛标题、城市等条件，不符合直接跳过。通过后才打开岗位，等本次 JD 更新完成再筛选；全部通过才打招呼，发送后继续原列表。</small></span><input id="clickApply" type="checkbox" class="switch"></label>
+          <label>消息发送方式<select id="greetingMode"><option value="boss_default">BOSS 默认招呼</option><option value="custom">插件自定义消息</option></select></label>
+          <div id="custom-greeting-fields" hidden>
+            <label id="greeting-editor-label">自定义消息</label><textarea id="greetingTemplate" maxlength="300" hidden aria-hidden="true"></textarea>
+            <div class="greeting-selection-toolbar"><button type="button" id="bind-greeting-city" class="primary" disabled>先框选要替换的文字</button><span class="hint">在下面框选地区文字，再点此按钮</span></div>
+            <div id="greeting-city-shortcuts" class="greeting-city-shortcuts" aria-label="选择文案中需要随岗位变化的地区"></div>
+            <div id="greeting-editor" class="greeting-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="greeting-editor-label" aria-describedby="greeting-selection-hint greeting-length" data-placeholder="输入招呼语，选中地区文字后绑定岗位城市"></div>
+            <p id="greeting-binding-state" class="greeting-binding-state" role="status"></p>
+            <span id="greeting-selection-hint" class="hint" role="status">框选文字后点击上方按钮；点城市标签上的 × 恢复原文字。</span>
+            <span class="hint" id="greeting-template-hint">支持 {title}（岗位名）、{company}（公司名）和岗位城市标签，最多 300 字。先关闭 BOSS 自带自动招呼，并确认网页端生效。</span>
+            <span class="hint" id="greeting-length"></span>
+            <div class="greeting-preview-box"><label for="greeting-preview-location">试填岗位地点<input id="greeting-preview-location" value="苏州·工业园区" autocomplete="off"></label><span class="hint">此处仅用于预览；实际投递按当前岗位已核对的地点替换。</span><p id="greeting-preview" role="status" aria-live="polite"></p></div>
+          </div>
+          <p class="info-note" id="greeting-mode-hint"></p>
+          <div class="fields two-col"><label>目标打招呼人数<input id="maxJobs" type="number" min="1" max="100"></label><label>每批读取岗位数<input id="maxScan" type="number" min="1" max="200"></label></div>
+          <div class="fields two-col" id="speed-settings">
+            <label>浏览岗位间隔（秒）<input id="browseIntervalSeconds" type="number" min="0.2" max="120" step="0.1" required aria-describedby="browse-speed-hint"><span class="hint" id="browse-speed-hint">默认 0.5 秒，可设 0.2–120 秒。详情加载时间计入间隔，加载完再继续。</span></label>
+            <label>打招呼间隔（秒）<input id="intervalSeconds" type="number" min="1" max="120" step="1" required aria-describedby="greeting-speed-hint"><span class="hint" id="greeting-speed-hint">默认 2 秒，可设 1–120 秒。上次发送确认后开始计时，浏览其他岗位可同时进行。</span></label>
+          </div>
+          <button type="button" id="reset-speed" class="text-button">恢复默认速度：浏览 0.5 秒 / 打招呼 2 秒</button>
+          <p class="hint">保存后下次启动任务生效。升级保留原来设置的打招呼间隔，可分别调整或恢复默认速度。</p>
+          <p class="info-note">自动打招呼持续加载列表，按实际发送成功人数完成目标；已沟通过、筛选不符的岗位不计入。每批读取数量只控制加载批次，仅分析最多读取此数量。</p>
+        </article>
+        <p class="info-note">投递指点击「立即沟通」并发送招呼语，不包含简历附件。</p>
+      </section>
+      <div id="save-bar" class="save-bar"><p>保存后生效<small>建议先运行「仅分析岗位」。</small></p><button type="submit" class="primary" id="save-config">保存配置</button></div>
+    </form>
+    <section id="schedules" class="tab-panel" hidden>
+      <article class="card schedule-overview"><div class="card-heading"><h2>我的定时任务</h2><button type="button" id="refresh-schedules" class="text-button">刷新状态</button></div><p id="schedule-next" class="schedule-next" role="status">尚未设置定时任务</p><p class="hint">按电脑本地时间执行，电脑需保持唤醒、Edge 保持运行。已有任务运行或暂停时跳过本次；重启后不补投已错过的任务。</p></article>
+      <article class="card"><div class="card-heading"><h2 id="schedule-form-title">添加定时任务</h2><span class="chip">时间到了自动开始</span></div>
+        <form id="schedule-form">
+          <input id="schedule-id" type="hidden">
+          <div class="fields two-col"><label>开始时间<input id="schedule-time" type="time" required></label><label>本轮合计人数<input id="schedule-target" type="number" value="5" readonly aria-describedby="schedule-total-hint"><span id="schedule-total-hint" class="hint">按下方已启用链接的人数自动合计。</span></label><label>重复方式<select id="schedule-repeat"><option value="once">仅执行一次</option><option value="daily">每天</option><option value="weekdays">周一至周五</option></select></label><label id="schedule-date-field">执行日期<input id="schedule-date" type="date" required></label></div>
+          <div class="schedule-links-heading"><span class="field-label">职位列表链接</span><span id="schedule-links-count" class="hint"></span></div>
+          <p class="hint">每条链接单独设置人数；右上角注释可修改。展开条件生成或使用当前职位页，可同时保存求职期望和筛选条件；执行前自动切换对应列表。</p>
+          <div id="schedule-links" class="schedule-links"></div>
+          <button type="button" id="add-schedule-link" class="secondary">＋ 添加链接</button>
+          <p class="info-note">例如杭州 5 人、苏州 3 人：杭州达到 5 人后切换苏州。某条链接岗位不足就记录缺额并继续，不把缺额追加给其他链接。只计发送成功人数，整轮共用去重记录；启用链接合计最多 100 人。</p>
+          <label class="check-row"><input id="schedule-enabled" type="checkbox" checked>启用此任务</label>
+          <label id="schedule-refresh-config-row" class="check-row" hidden><input id="schedule-refresh-config" type="checkbox">同时更新为当前已保存的筛选条件、招呼语与速度</label>
+          <p class="info-note">新任务使用当前已保存的投递配置。编辑默认保留原配置；实际发送成功才计入人数。停用只取消后续计划，停止正在投递的一轮请用投递面板的「停止」。</p>
+          <div class="card-actions"><button type="submit" id="save-schedule" class="primary">保存定时任务</button><button type="button" id="reset-schedule" class="text-button">清空 / 新建</button></div>
+        </form>
+      </article>
+      <div id="schedule-list" class="schedule-list" aria-live="polite"></div>
+    </section>
+    <section id="records" class="tab-panel" hidden>
+      <div class="record-toolbar"><label>状态<select id="record-filter"><option value="all">全部记录</option><option value="preview">仅分析</option><option value="sent">已确认发送</option><option value="filtered">已过滤</option><option value="review">待人工确认</option><option value="uncertain">发送待核实</option><option value="error">错误</option></select></label><div><button class="secondary" id="refresh-records">刷新</button><button class="secondary" id="export-records">导出 CSV</button><button class="danger-text" id="clear-records">清空</button></div></div>
+      <div id="record-stats" class="record-stats"></div><div id="record-list" class="record-list"></div>
+    </section>
+    <footer>配置与投递记录保存在本机</footer>
+  </main>
+  <dialog id="city-picker" class="city-dialog" aria-labelledby="city-dialog-title" aria-describedby="city-dialog-description">
+    <header class="city-dialog-header"><div><h2 id="city-dialog-title">请选择城市</h2><p id="city-dialog-description">支持按拼音首字母查找，可多选城市。</p></div><button type="button" id="close-city-picker" class="city-dialog-close" aria-label="关闭城市选择器">×</button></header>
+    <div class="city-dialog-search"><input id="city-search" type="search" placeholder="搜索全部城市或城市拼音" aria-label="搜索城市或城市拼音"></div>
+    <nav id="city-tabs" class="city-tabs" aria-label="城市分类">
+      <button type="button" class="active" data-city-tab="all" aria-pressed="true">全部</button><button type="button" data-city-tab="hot" aria-pressed="false">热门城市</button><button type="button" data-city-tab="ABCDE" aria-pressed="false">ABCDE</button><button type="button" data-city-tab="FGHJ" aria-pressed="false">FGHJ</button><button type="button" data-city-tab="KLMN" aria-pressed="false">KLMN</button><button type="button" data-city-tab="PQRST" aria-pressed="false">PQRST</button><button type="button" data-city-tab="WXYZ" aria-pressed="false">WXYZ</button>
+    </nav>
+    <div class="city-results-head"><span id="city-results-count"></span><button type="button" id="select-visible-cities" class="text-button">全选当前列表</button></div>
+    <div id="city-picker-results" class="city-picker-results"></div>
+    <div class="city-dialog-selection"><div class="city-selection-head"><span id="city-draft-count" role="status" aria-live="polite"></span><button type="button" id="clear-city-draft" class="text-button">清空 / 不限</button></div><div id="city-draft-chips" class="selected-cities" role="group" aria-label="待确认的城市，点击移除"></div></div>
+    <div class="city-source-note">城市名单参考 <a href="https://www.yicai.com/news/102638963.html" target="_blank" rel="noreferrer">第一财经 2025 名单 ↗</a>；其他城市或地区也可手动输入。</div>
+    <footer class="city-dialog-footer"><span>确认选择后，记得保存配置</span><div><button type="button" id="cancel-city-picker" class="secondary">取消</button><button type="button" id="confirm-city-picker" class="primary">确认选择</button></div></footer>
+  </dialog>
+  <script src="cities.js"></script><script src="city-codes.js"></script><script src="core.js"></script><script src="source-plans.js"></script><script src="greeting-editor.js"></script><script src="options.js"></script><script src="source-options.js"></script><script src="schedule-options.js"></script>
+</body></html>

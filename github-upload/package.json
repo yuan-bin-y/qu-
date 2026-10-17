@@ -1,0 +1,14 @@
+{
+  "name": "qutou-boss-edge-extension",
+  "version": "0.2.7",
+  "private": true,
+  "description": "qu投：BOSS 直聘关键词组筛选、城市选择与自定义招呼助手",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node scripts/check.cjs",
+    "package": "node scripts/package.cjs"
+  },
+  "dependencies": {
+    "fflate": "0.8.3"
+  }
+}

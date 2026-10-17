@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>qu投</title><link rel="stylesheet" href="ui.css"></head><body class="popup-page">
+<header class="popup-head"><div class="brand"><span class="brand-mark">↗</span><span>qu投<small>BOSS 自动投递</small></span></div><button id="settings" class="text-button">设置 ↗</button></header>
+<h1>筛选岗位，自动打招呼</h1><p id="state" class="popup-state" aria-live="polite">正在连接扩展…</p>
+<div class="popup-stats"><div><b id="scanned">0</b><small>已分析</small></div><div><b id="matched">0</b><small>符合条件</small></div><div><b id="sent">0</b><small>确认发送</small></div></div>
+<div class="popup-buttons"><button id="preview" class="secondary">仅分析岗位</button><button id="start" class="primary">开始全自动 ↗</button></div>
+<div class="popup-controls"><button id="pause" class="secondary" disabled>暂停</button><button id="stop" class="secondary" disabled>停止</button></div>
+<button id="reconnect" class="text-button">恢复页面面板 ↗</button><p id="connection" class="popup-foot" aria-live="polite"></p>
+<button id="review-tab" class="popup-hidden-link text-button" hidden>打开待核实的聊天页面 ↗</button><p class="popup-foot">分析当前列表及滚动加载的岗位。仅分析不会发送消息。</p><div id="notice" class="notice error" role="alert" hidden></div><script src="popup.js"></script></body></html>

@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "qu投",
+  "version": "0.2.7",
+  "description": "关键词组筛选、城市选择、自定义消息与 BOSS 默认招呼、投递记录，适用于 Microsoft Edge。",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://www.zhipin.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "qu投 · BOSS 自动投递",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "options.html",
+        "options.js",
+        "ui.css",
+        "core.js",
+        "cities.js",
+        "greeting-editor.js",
+        "schedule-options.js",
+        "city-codes.js",
+        "source-plans.js",
+        "source-options.js"
+      ],
+      "matches": [
+        "https://www.zhipin.com/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zhipin.com/*"
+      ],
+      "js": [
+        "cities.js",
+        "core.js",
+        "salary.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "version_name": "0.2.07"
+}
